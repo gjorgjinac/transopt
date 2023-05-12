@@ -1,4 +1,4 @@
-from tsai_gina import *
+from tsai_custom import *
 from tsai.all import *
 computer_setup()
 
@@ -15,7 +15,7 @@ from sklearn.model_selection import cross_val_score
 import numpy as np
    
 class OptTransStats(Module):
-    def __init__(self, c_in:int, c_out:int, seq_len:int, iteration_count:int=None,
+    def __init__(self, c_in:int, c_out:int, seq_len:int,
                  n_layers:int=3, d_model:int=128, n_heads:int=16, d_k:Optional[int]=None, d_v:Optional[int]=None,  
                  d_ff:int=256, dropout:float=0.1, act:str="relu", fc_dropout:float=0, use_positional_encoding=False,
                  y_range:Optional[tuple]=None, verbose:bool=False, aggregations=None, do_regression=False, **kwargs):
@@ -49,17 +49,6 @@ class OptTransStats(Module):
         self.use_positional_encoding=use_positional_encoding
         self.aggregations=aggregations if aggregations is not None else ['min','max','std','mean']
         # Positional encoding
-        
-        
-        if use_positional_encoding and iteration_count is not None:
-            W_pos_values=[[0.01*it for _ in range(0,int(q_len/iteration_count)) for it in range(0,iteration_count)] for _ in range(0,d_model)]
-            self.W_pos=nn.Parameter(torch.tensor(W_pos_values, device=default_device()), requires_grad=True).T
-            
-            
-            #W_pos = torch.empty((q_len, d_model), device=default_device())
-            #nn.init.uniform_(W_pos, -0.02, 0.02)
-            #self.W_pos = nn.Parameter(W_pos, requires_grad=True)
-        
         
 
         # Residual dropout

@@ -72,7 +72,7 @@ class ProblemClassificationProcessor():
 
     
     
-    def run(self,sample_df,train_seeds,val_seeds):
+    def run(self,sample_df):
         sample_df, problem_id_to_index,  problem_index_to_id = self.offset_problem_id(sample_df)
         train, val, test = self.split_data(sample_df)
         train, val, test = self.pre_processor.preprocess_splits(train, val, test)

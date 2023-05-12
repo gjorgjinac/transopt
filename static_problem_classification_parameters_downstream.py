@@ -60,7 +60,7 @@ for fold in range(0,10):
         for n_heads in [1]:
             for n_layers in [1]:
                     sample_df=new_sample_df.copy()
-                    utils_runner_universal.UniversalRunner(global_result_dir='results_downstream',extra_info=f'dim_{dimension}_instances_{instances_to_use}_samples_{sample_count_dimension_factor}', model_name='stats',fold=fold,use_positional_encoding=False,task_name='problem_classification', verbose=True, plot_training=False, d_model=d_model, d_k=None, d_v=None, n_heads=n_heads, n_layers=n_layers, n_epochs=200, normalize=False, reduce=False, lr_max=0.001).run(sample_df, regenerate=True)
+                    utils_runner_universal.UniversalRunner(global_result_dir='results_downstream',extra_info=f'dim_{dimension}_instances_{instances_to_use}_samples_{sample_count_dimension_factor}', fold=fold, verbose=True, plot_training=False, d_model=d_model, d_k=None, d_v=None, n_heads=n_heads, n_layers=n_layers, n_epochs=200,  lr_max=0.001).run(sample_df, regenerate=True)
 
 
 

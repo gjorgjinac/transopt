@@ -58,7 +58,7 @@ else:
 for fold in range(0,10):
     for aggregation in ['min','max','mean','std']:
         sample_df=new_sample_df.copy()
-        utils_runner_universal.UniversalRunner(extra_info=f'dim_{dimension}_instances_{instances_to_use}_samples_{sample_count_dimension_factor}',global_result_dir='results_aggregations', aggregations=[aggregation],model_name='stats',fold=fold,use_positional_encoding=False,task_name='problem_classification', verbose=True, plot_training=False, d_model=30, d_k=None, d_v=None, n_heads=1, n_layers=1, n_epochs=200, normalize=False, reduce=False, lr_max=0.001).run(sample_df, plot_embeddings=False)
+        utils_runner_universal.UniversalRunner(extra_info=f'dim_{dimension}_instances_{instances_to_use}_samples_{sample_count_dimension_factor}',global_result_dir='results_aggregations', aggregations=[aggregation],fold=fold, verbose=True, plot_training=False, d_model=30, d_k=None, d_v=None, n_heads=1, n_layers=1, n_epochs=200, lr_max=0.001).run(sample_df, plot_embeddings=False)
 
 
 

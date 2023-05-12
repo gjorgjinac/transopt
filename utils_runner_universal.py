@@ -1,4 +1,4 @@
-from tsai_gina import *
+from tsai_custom import *
 from tsai.all import *
 computer_setup()
 import torch
@@ -30,7 +30,6 @@ import matplotlib
 matplotlib.cm.register_cmap("my_cmap", my_cmap)
 
 class UniversalRunner():
-
     logger = None
     verbose: bool
     plot_training: bool
@@ -41,15 +40,51 @@ class UniversalRunner():
     d_v:int 
     n_epochs:int
     bs:int
-    model_name:str
+
     model:any
     learner:any
-    setting_name:str
-    result_dir:str
-    use_positional_encoding:bool
-    
-    def __init__(self,model_name,task_name='problem_classification',extra_info=None, y_mapping=None,normalize=True,reduce=False, verbose=True, lr_max=5e-4, plot_training=True, use_positional_encoding=False, n_heads=1, n_layers=1, d_model=20, d_k=10, d_v=10, n_epochs=100, batch_size=8, fold=None, split_ids_dir=None, iteration_count=None, include_iteration_in_x=False, sample_range=None, iteration_based=True, train_seeds=None, val_seeds=None, global_result_dir='results', aggregations=None):
 
+    result_dir:str
+
+    
+    def __init__(self,task_name='problem_classification',extra_info=None, verbose=True, lr_max=5e-4, plot_training=True,  n_heads=1, n_layers=1, d_model=20, d_k=10, d_v=10, n_epochs=100, batch_size=8, fold=None, split_ids_dir=None, global_result_dir='results', aggregations=None):
+        """
+        Initialize the UniversalRunner object with the given parameters and create the data processor object.
+
+        Parameters
+        task_name : str
+        The name of the task to run the model on, such as 'problem_classification' or 'algorithm_classification'.
+        extra_info : str
+        An optional string to add extra information to the setting name and result directory.
+        verbose : bool
+        A flag to indicate whether to print verbose messages or not.
+        lr_max : float
+        The maximum learning rate to use for training the model.
+        plot_training : bool
+        A flag to indicate whether to plot the training metrics or not.
+        n_heads : int
+        The number of attention heads in the transformer model.
+        n_layers : int
+        The number of encoder layers in the transformer model.
+        d_model : int
+        The dimension of the input and output vectors in the transformer model.
+        d_k : int
+        The dimension of the query and key vectors in the attention mechanism.
+        d_v : int
+        The dimension of the value vector in the attention mechanism.
+        n_epochs : int
+        The number of epochs to train the model.
+        batch_size : int
+        The batch size for the data loaders.
+        fold : int or None
+        The fold number to use for cross-validation or None for no cross-validation.
+        split_ids_dir : str or None
+        The path to the directory where the split ids are stored or None for random splits.
+        global_result_dir : str
+        The path to the directory where all results are stored.
+        aggregations : list of str or None
+        The list of aggregation functions to use for aggregating the transformer embeddings. Can contain a list of the following aggregations "min", "max", "mean" or "std"
+        """
         self.verbose = verbose
         self.lr_max=lr_max
         self.plot_training=plot_training
@@ -60,22 +95,20 @@ class UniversalRunner():
         self.d_v=d_v
         self.n_epochs=n_epochs
         self.batch_size=batch_size
-        self.train_seeds=train_seeds
-        self.val_seeds=val_seeds
-        self.setting_name=f'{task_name}_{model_name}'
+  
+
+    
         self.task_name=task_name
         self.extra_info=(extra_info if extra_info is not None else '') + f'_fold_{fold if fold is not None else "none"}_n_heads_{n_heads}_n_layers_{n_layers}_d_model_{d_model}_d_k_{d_k}_d_v_{d_v}_aggregations_{"all" if aggregations is None else "-".join(aggregations)}'
-        if task_name=='algorithm_classification':
-            self.extra_info+=f'_pos_enc_{use_positional_encoding}'
-        self.result_dir = os.path.join(global_result_dir,self.setting_name,self.extra_info) if fold is None or task_name=='problem_classification' else os.path.join(global_result_dir,self.setting_name,self.extra_info, split_ids_dir)
+
+        self.result_dir = os.path.join(global_result_dir,self.task_name,self.extra_info) if fold is None or task_name=='problem_classification' else os.path.join(global_result_dir,self.task_name,self.extra_info, split_ids_dir)
         self.fold=fold
-        self.use_positional_encoding=use_positional_encoding
-        self.iteration_count=iteration_count
+
         self.aggregations=aggregations
         os.makedirs(self.result_dir, exist_ok = True) 
         
-        self.data_processor= ProblemClassificationProcessor(verbose=False, normalize=normalize, reduce=reduce,fold=fold,split_ids_dir=split_ids_dir)  
-        self.model_name=model_name
+        self.data_processor= ProblemClassificationProcessor(verbose=False, normalize=False, reduce=False,fold=fold,split_ids_dir=split_ids_dir)  
+
         
         
         self.classification_report_location=os.path.join(self.result_dir,f'test_classification_report.csv')
@@ -158,34 +191,6 @@ class UniversalRunner():
             all_labels=[int(i) for i in all_labels]
         return all_embeddings, all_labels
 
-    def show_cosine_similarity(self,embeddings,labels, problem_index_to_id, count=10):
-        plt.figure(figsize=(10,10)) 
-        if problem_index_to_id is not None:
-            labels = [problem_index_to_id[yy] for yy in labels]
-        embeddings, labels = embeddings[:count], labels[:count]
-        similarity = cosine_similarity(embeddings, embeddings)
-        labels_sorted=labels.copy()
-        labels_sorted.sort()
-        similarity_df = pd.DataFrame(similarity, index=labels, columns=labels).sort_index()[labels_sorted]
-        sns.heatmap(similarity_df, cmap=my_cmap)
-        plt.show()
-        
-    def plot_embeddings(self, data_loader, batch_count, problem_index_to_id):
-        
- 
-        embeddings, labels = self.get_embeddings_from_dls(data_loader, batch_count)
-        print(embeddings.shape)
-        print(labels)
-        self.show_cosine_similarity(embeddings,labels,problem_index_to_id,100)
-        if problem_index_to_id is not None:
-            labels = [problem_index_to_id[yy] for yy in labels]
-        
-        tsne=sklearn.manifold.TSNE(n_components=2)
-        batch_embeddings_2d=pd.DataFrame(tsne.fit_transform(embeddings) , columns=['x','y'])
-        batch_embeddings_2d['label']=labels
-        plt.figure(figsize=(10,10)) 
-        sns.scatterplot(batch_embeddings_2d, x='x',y='y', hue='label', style='label',  palette=sns.color_palette(cc.glasbey, n_colors=24))
-        plt.show()
     
             
     def shuffle_x_y(self,a, b):
@@ -194,7 +199,7 @@ class UniversalRunner():
         return a[p], b[p]
     
     def preprocess(self,sample_df):
-        x_train, y_train, x_val, y_val, x_test, y_test, problem_id_to_index, problem_index_to_id, ids_train, ids_val, ids_test = self.data_processor.run(sample_df, self.train_seeds, self.val_seeds)
+        x_train, y_train, x_val, y_val, x_test, y_test, problem_id_to_index, problem_index_to_id, ids_train, ids_val, ids_test = self.data_processor.run(sample_df)
         
         x_train, y_train = self.shuffle_x_y(x_train, y_train)
         x_val,y_val = self.shuffle_x_y(x_val,y_val)
@@ -202,7 +207,7 @@ class UniversalRunner():
         return x_train, y_train, x_val, y_val, x_test, y_test, problem_id_to_index, problem_index_to_id
     
     def save_embeddings(self, sample_df):
-        x,y=self.data_processor.get_x_y(sample_df, shuffle=False)
+        x,y,ids=self.data_processor.get_x_y(sample_df, shuffle=False)
         dset = TSDatasets(np.swapaxes(x,1,2),sample_df.index.drop_duplicates())
         dls = TSDataLoaders.from_dsets(dset, bs=24, shuffle=False)
         embeddings=self.get_embeddings_from_dls( dls[0], None, cast_y_to_int=False)
@@ -219,7 +224,7 @@ class UniversalRunner():
             print(f'Classification report already exists {self.classification_report_location}. Skipping execution.')
             return None, None, None, None, None
             
-        x_train, y_train, x_val, y_val, x_test, y_test, problem_id_to_index, problem_index_to_id, ids_train, ids_val, ids_test = self.data_processor.run(sample_df, self.train_seeds, self.val_seeds)
+        x_train, y_train, x_val, y_val, x_test, y_test, problem_id_to_index, problem_index_to_id, ids_train, ids_val, ids_test = self.data_processor.run(sample_df)
         dset_train, dset_val, dset_test = [TSDatasets(np.swapaxes(xx,1,2),yy) for xx,yy in [(x_train,y_train),(x_val,y_val),(x_test,y_test)]]
         
         dls = TSDataLoaders.from_dsets(dset_train, dset_val, bs=self.batch_size)
@@ -228,18 +233,13 @@ class UniversalRunner():
         
         dls.c=len(set(y_train))
         print(f'Number of samples: {dls.len}, Number of variables: {dls.vars}, Number of classes: {dls.c}')
-        self.model=OptTransStats(dls.vars, dls.c, dls.len, n_heads=self.n_heads, n_layers=self.n_layers, d_model=self.d_model, d_k=self.d_k, d_v=self.d_v, use_positional_encoding=self.use_positional_encoding, iteration_count=self.iteration_count, aggregations=self.aggregations)
+        self.model=OptTransStats(dls.vars, dls.c, dls.len, n_heads=self.n_heads, n_layers=self.n_layers, d_model=self.d_model, d_k=self.d_k, d_v=self.d_v, use_positional_encoding=False, aggregations=self.aggregations)
 
-        if plot_embeddings:
-            self.plot_embeddings(test_data_loader, 100, problem_index_to_id )
         self.train_model(dls)
         self.evaluate(x_train,y_train,'train', problem_index_to_id, ids_train )
         self.evaluate(x_val,y_val,'val', problem_index_to_id, ids_val)
         test_report, test_confusion_matrix = self.evaluate(x_test,y_test,'test', problem_index_to_id, ids_test )
-        
-        if plot_embeddings:
-            self.plot_embeddings(test_data_loader, 100, problem_index_to_id )
-        
+  
         embedding_df=None
         if save_embeddings:
             embedding_df=self.save_embeddings(sample_df)

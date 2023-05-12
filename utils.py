@@ -13,7 +13,7 @@ import seaborn as sns
 from clearml import Task
 
    
-class GinaTST(Module):
+class CustomTST(Module):
     def __init__(self, c_in:int, c_out:int, seq_len:int, 
                  n_layers:int=3, d_model:int=128, n_heads:int=16, d_k:Optional[int]=None, d_v:Optional[int]=None,  
                  d_ff:int=256, dropout:float=0.1, act:str="gelu", fc_dropout:float=0., 
