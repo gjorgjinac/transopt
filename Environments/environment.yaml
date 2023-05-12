@@ -1,0 +1,25 @@
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+  - bioconda
+dependencies:
+  - python=3.8
+  - pandas
+  - ipython
+  - ipykernel
+  - numpy
+  - scipy
+  - matplotlib
+  - r-base
+  - r-devtools
+  - six 
+  - pip: 
+    - cocopp
+    - tsai
+    - seaborn
+    - pymoo
+    - smt
+    - colorcet
+    - opfunu
+    - autogluon
