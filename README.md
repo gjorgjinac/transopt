@@ -6,6 +6,11 @@ This repository contains the code for the TransOpt model for generating embeddin
 The transformer model is trained to classify the problem instances from the BBOB benchmark suite into the 24 problem classes.
 The repository contains code for all of the experiments presented in the paper. 
 
+### Sampling
+The script sample_bbob_lhs.py performs Latin Hypercube sampling of the problems from the BBOB benchmark. It receives 2 input arguments:
+- dimension - The dimension of the problems for which to run the problem classification task
+- sample_count_dimension_factor - Defines the number of samples used for each problem instance. For each problem instance, sample_count_dimension_factor * problem_dimension samples 
+
 ### Transformer training
 
 - The script static_problem_classification_parameters_exp.py contains the code for training the model with different model parameters.
@@ -56,7 +61,7 @@ For the script to be run, the appropriate sample data should already be existing
         The list of aggregation functions to use for aggregating the transformer embeddings. Can contain a list of the following aggregations "min", "max", "mean" or "std"
 
 
-- The file model_stats.py contains the transformer model
+- The file model_stats.py contains the transformer model. The remaining utils_* script contain utility functions to run the experiments.
 
 ### Comparison to ELA features
 
