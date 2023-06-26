@@ -67,7 +67,7 @@ For the script to be run, the appropriate sample data should already be existing
 
 The file feature_calculation_per_problem.R is used for calculating the ELA features. It receives an input arguments the name of a file containing samples of optimization problem instances and the problem_id for which the ELA features should be calculated. It produces a single file containing the ELA features for a single problem id, and should be run for each problem id separately.
 
-The file ela_static_problem_classification.py trains a Random Forest model based on the ELA features. Before running this file, the ELA features produced by the feature_calculation_per_problem.R should be merged into a single file.
+The file ela_static_problem_classification.py trains a neural network model based on the ELA features. Before running this file, the ELA features produced by the feature_calculation_per_problem.R should be merged into a single file.
 
 The remaining notebooks are used for generating the visualizations for the paper.
 
